@@ -23,7 +23,7 @@ class HexGridCanvas(Canvas):
         self.selected_hex = None
         self.view_edges = False
         self.hex_ratio = abs(cos(self._get_vertex_angle(0))) # Ratio of a hexagon's height to its width
-
+        self.hint_evaluators = {}
 
     def _get_vertex_angle(self, index: EdgeIndex) -> float:
         """Returns the angle (in radians) from positive x of the vertex indicated by index"""
@@ -111,6 +111,18 @@ class HexGridCanvas(Canvas):
                 self.create_line(vertices, vertices[0], fill=border_color, width=border_width)
 
 
+    def draw_score(self, xy: GridCoordinate, score: float) -> None:
+        """Draws the score on top of the specified tile."""
+        x, y = self._get_tile_center_pixel(xy)
+        self.create_text(
+            x, y,
+            text=str(score),
+            fill="black",
+            font=("Helvetica", int(self.tile_radius // 2)),
+            anchor="center"
+        )
+
+
     def draw(self, board: HexGrid) -> None:
         """Draws the full game board on the canvas"""
         self._set_coordinate_transform_parameters(board)
@@ -118,20 +130,23 @@ class HexGridCanvas(Canvas):
         for xy in product(range(board.size), range(board.size)):
             status = board.get_tile(xy).get_status()
             if status == TileStatus.EMPTY:
-                # self.draw_tile(x, y, fill_color=None, border_color='purple')
                 continue
             if self.view_edges:
                 fill_colors = [edge.to_color() for edge in board.get_tile(xy).get_edges()]
                 self.draw_edges(xy, fill_colors=fill_colors, border_color=Color.BLACK)
             else:
-                if status == TileStatus.VALID and xy in self.hint_hexes:
+                if status == TileStatus.VALID and xy in self.hint_evaluators:
                     fill_color = Color.PLUM
                 else:
                     fill_color = status.to_color()
                 self.draw_tile(xy, fill_color=fill_color, border_color=Color.BLACK)
+            # Draw the score if the tile is a hint
+            if xy in self.hint_evaluators:
+                score = self.hint_evaluators[xy].get_score()
+                self.draw_score(xy, score)
         if self.selected_hex is not None:
             self.draw_tile(self.selected_hex, border_color=Color.YELLOW)
-    
+
 
     def toggle_view(self) -> None:
         self.view_edges = not self.view_edges
@@ -152,8 +167,8 @@ class HexGridCanvas(Canvas):
 
     def set_hint(self, hint: List[PlacementEvaluator]):
         """Set which tiles to highlight given a hint"""
-        self.hint_hexes = []
+        self.hint_evaluators = {}
         if hint is None:
             return
         for evaluator in hint:
-            self.hint_hexes.append(evaluator.xy)
+            self.hint_evaluators[evaluator.xy] = evaluator

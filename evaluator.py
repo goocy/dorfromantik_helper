@@ -50,5 +50,5 @@ class PlacementEvaluator:
         num_bad_connections = self.get_num_bad_connections()
         num_perfects = self.get_num_neighbors_perfected() + (num_good_connections == 6)
         num_neighbors_ruined = self.get_num_neighbors_ruined()
-        return 0.5*num_perfects + num_good_connections - num_neighbors_ruined - 0.5*num_bad_connections
+        return num_perfects*3 + num_good_connections - num_neighbors_ruined*5 - num_bad_connections*2
         

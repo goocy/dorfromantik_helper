@@ -194,8 +194,8 @@ class DorfHelperApp(Tk):
 
     def display_hint(self) -> None:
         tile = self.tile_canvas.get_tile()
-        hint = self.board.get_hint(tile, threshold=2, top_k=10)
-        if not hint:
+        hint = self.board.get_hint(tile, threshold=0, top_k=50)
+        if len(hint) < 5:
             hint = self.board.get_hint(tile, top_k=5)
         text_hint = ["x={}, y={}, {} of {} good connections with {} perfects (score = {})".format(
                             evaluator.xy[0],
