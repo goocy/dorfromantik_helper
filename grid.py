@@ -226,7 +226,7 @@ class HexGrid:
         num_evals = len(ranked_evaluators)
         if not threshold is None:
             above_threshold = [evaluator.get_score() >= threshold for evaluator in ranked_evaluators]
-            num_evals = above_threshold.index(False)
+            num_evals = sum(above_threshold) # ranked best first, so this counts the leading run
         if not top_k is None:
             num_evals = min(top_k, num_evals)
         return ranked_evaluators[0:num_evals]
